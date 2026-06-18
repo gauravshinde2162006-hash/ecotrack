@@ -1,0 +1,84 @@
+{
+  "name": "threshold-alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ecotrack-threshold",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "Threshold Exceeded Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ecotrack-threshold",
+      "notes": "Backend POSTs here when user's daily footprint > rolling average + 20%"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ECOTRACK_API_URL }}/api/webhooks/threshold",
+        "method": "POST",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "body": "={{ JSON.stringify({ userId: $json.body.userId, daily: $json.body.daily, average: $json.body.average, category: $json.body.category }) }}"
+      },
+      "id": "get-ai-tip",
+      "name": "Get Instant AI Tip",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300],
+      "notes": "Calls Claude API for an immediate, context-aware suggestion"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $('Threshold Exceeded Webhook').item.json.body;\nconst ai = $('Get Instant AI Tip').item.json;\nconst overBy = ((payload.daily - payload.average) / payload.average * 100).toFixed(0);\n\nconst message = [\n  `⚠️ High Carbon Alert — ${overBy}% above your average!`,\n  `Today: ${payload.daily?.toFixed(2)} kg CO₂e (avg: ${payload.average?.toFixed(2)} kg)`,\n  `Main source: ${payload.category}`,\n  ``,\n  `💡 AI Tip: ${ai.insight ?? 'Try to offset with a greener commute tomorrow.'}`,\n  ai.suggestions?.[0] ? `→ ${ai.suggestions[0].action} (saves ~${ai.suggestions[0].estimatedSavingKg} kg)` : '',\n].filter(Boolean).join('\\n');\n\nreturn [{ json: { message, daily: payload.daily, average: payload.average, category: payload.category } }];"
+      },
+      "id": "format-alert",
+      "name": "Format Alert Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NOTIFICATION_WEBHOOK_URL }}",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "title", "value": "⚠️ EcoTrack Threshold Alert" },
+            { "name": "message", "value": "={{ $json.message }}" },
+            { "name": "priority", "value": "high" }
+          ]
+        }
+      },
+      "id": "send-alert",
+      "name": "Send Instant Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: $('Format Alert Message').item.json.message.slice(0, 100) }) }}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Threshold Exceeded Webhook": { "main": [[{ "node": "Get Instant AI Tip", "type": "main", "index": 0 }]] },
+    "Get Instant AI Tip":         { "main": [[{ "node": "Format Alert Message", "type": "main", "index": 0 }]] },
+    "Format Alert Message":       { "main": [[{ "node": "Send Instant Notification", "type": "main", "index": 0 }]] },
+    "Send Instant Notification":  { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "EcoTrack Threshold Alert — triggered by backend when daily footprint > average+20%, fetches Claude tip, sends instant notification"
+  }
+}

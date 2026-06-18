@@ -1,0 +1,107 @@
+{
+  "name": "daily-reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1, "triggerAtMinute": 0 }]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Daily 8PM Cron",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "notes": "Fires every hour — workflow checks if it's 8PM and if user hasn't logged"
+    },
+    {
+      "parameters": {
+        "jsCode": "const hour = new Date().getHours();\nif (hour !== 20) { return []; } // Only run at 8PM\nreturn [{ json: { proceed: true } }];"
+      },
+      "id": "time-check",
+      "name": "Is it 8PM?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ECOTRACK_API_URL }}/api/webhooks/daily-check",
+        "method": "GET",
+        "options": { "timeout": 5000 }
+      },
+      "id": "check-logged",
+      "name": "Check if User Logged Today",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300],
+      "notes": "GET /api/webhooks/daily-check → { hasLogged: bool, todayCO2e: number }"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "not-logged",
+              "leftValue": "={{ $json.needsReminder }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "needs-reminder",
+      "name": "Needs Reminder?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NOTIFICATION_WEBHOOK_URL }}",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "title", "value": "🌿 EcoTrack Reminder" },
+            { "name": "message", "value": "You haven't logged today's carbon activity yet! 📊 Track your commute, meals and electricity to keep your streak going." },
+            { "name": "timestamp", "value": "={{ new Date().toISOString() }}" }
+          ]
+        }
+      },
+      "id": "send-notification",
+      "name": "Send Reminder Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 200],
+      "notes": "Replace with your notification service (Ntfy, Pushover, Slack, etc.)"
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('User already logged today. No reminder needed.'); return [];"
+      },
+      "id": "skip",
+      "name": "Skip — Already Logged",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 420]
+    }
+  ],
+  "connections": {
+    "Daily 8PM Cron": { "main": [[{ "node": "Is it 8PM?", "type": "main", "index": 0 }]] },
+    "Is it 8PM?": { "main": [[{ "node": "Check if User Logged Today", "type": "main", "index": 0 }]] },
+    "Check if User Logged Today": { "main": [[{ "node": "Needs Reminder?", "type": "main", "index": 0 }]] },
+    "Needs Reminder?": {
+      "main": [
+        [{ "node": "Send Reminder Notification", "type": "main", "index": 0 }],
+        [{ "node": "Skip — Already Logged", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "description": "EcoTrack Daily Reminder — fires at 8PM, checks if user logged, sends notification if not"
+  }
+}

@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --color-eco-primary: #22c55e;
+    --color-eco-glow:    rgba(34, 197, 94, 0.3);
+    --color-surface:     rgba(39, 39, 42, 0.7);
+    --color-border:      rgba(255, 255, 255, 0.08);
+    --color-text:        #f4f4f5;
+    --color-muted:       #71717a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: #050505;
+    background-image: url('/eco-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-base, #f4f4f5);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Mouse Tracking Glow Effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: -1; /* Behind UI, over background */
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 50vw) var(--mouse-y, 50vh), 
+      rgba(34, 197, 94, 0.15),
+      transparent 40%
+    );
+    /* No transition on background position to make it snappy, but transition opacity if needed */
+  }
+
+  /* Dark overlay for contrast over bright parts of the image */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: -2;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-carbon-700 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-carbon-600; }
+}
+
+/* ── Component Layer ────────────────────────────────────────────────────── */
+@layer components {
+
+  /* Glass card — Solid, professional, clean styling over image */
+  .glass-card {
+    background: rgba(15, 15, 15, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    color: #f4f4f5;
+  }
+
+  .glass-card:hover {
+    border-color: rgba(34, 197, 94, 0.3);
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(34, 197, 94, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Metric card — numeric stat display */
+  .metric-card {
+    @apply glass-card p-6;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent, #22c55e), transparent);
+    opacity: 0.6;
+  }
+
+  /* Eco button */
+  .btn-eco {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+
+  .btn-eco:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-eco:active { transform: translateY(0); }
+
+  .btn-eco:disabled {
+    @apply opacity-40 cursor-not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm text-carbon-300;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.2s ease;
+  }
+
+  .btn-ghost:hover {
+    @apply text-carbon-100;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl text-sm text-carbon-100 placeholder-carbon-500;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .input-field:focus {
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  /* Select field */
+  .select-field {
+    @apply input-field;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+  }
+
+  .select-field option {
+    background-color: #18181b;
+    color: #f4f4f5;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-eco {
+    @apply badge;
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  .badge-warn {
+    @apply badge;
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+  }
+
+  .badge-danger {
+    @apply badge;
+    background: rgba(244, 63, 94, 0.15);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.25);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply w-full h-2 rounded-full;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-700 ease-out;
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+  }
+
+  /* Skeleton loading shimmer */
+  .skeleton {
+    @apply rounded-lg;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Section header */
+  .section-header {
+    @apply text-lg font-bold text-carbon-100 mb-1;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-carbon-400;
+  }
+
+  /* Heatmap cell */
+  .heatmap-cell {
+    @apply rounded-md transition-all duration-200 cursor-pointer;
+    aspect-ratio: 1;
+  }
+
+  /* Divider */
+  .divider { border-color: rgba(255,255,255,0.07); }
+
+  /* Typewriter cursor */
+  .typewriter::after {
+    content: '|';
+    animation: blink 0.8s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Removed unused .nav-link styles */
+
+  /* Chart tooltip */
+  .chart-tooltip {
+    @apply glass-card p-3 text-xs;
+    pointer-events: none;
+  }
+}
+
+/* ── Utilities ─────────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #4ade80, #22c55e, #16a34a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-sky {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-eco {
+    box-shadow: 0 0 24px rgba(34, 197, 94, 0.3), 0 0 48px rgba(34, 197, 94, 0.1);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+  }
+
+  .animate-fade-in { animation: fadeIn 0.4s ease-out both; }
+  .animate-slide-up { animation: slideUp 0.35s ease-out both; }
+
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+
+  /* Custom recharts tooltip override */
+  .recharts-default-tooltip {
+    background: var(--glass-bg, rgba(24, 24, 27, 0.85)) !important;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)) !important;
+    border-radius: 12px !important;
+    backdrop-filter: blur(16px) !important;
+    color: var(--text-base, #f4f4f5) !important;
+  }
+
+}
