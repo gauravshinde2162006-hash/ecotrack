@@ -14,7 +14,7 @@ export default function Globe({ users }: { users: any[] }) {
     'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'
   ]);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (globeRef.current) {
       globeRef.current.rotation.y += 0.001; // Slow rotation for the earth
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { Trophy, Medal, User as UserIcon, Globe as GlobeIcon } from 'lucide-react';
 import { fetchLeaderboard } from '../api';
 import { useAuth } from '../context/AuthContext';

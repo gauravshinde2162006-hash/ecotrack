@@ -86,7 +86,7 @@ function ThinkingStep({ step }: { step: AgentStep }) {
         <div className="mt-0.5 p-1.5 rounded-lg shrink-0" style={{ background: hasError ? '#ef444420' : `${meta.color}20` }}>
           {hasError
             ? <AlertCircle size={13} className="text-rose-400" />
-            : <CheckCircle2 size={13} style={{ color: meta.color }} />
+            : <Icon size={13} style={{ color: meta.color }} />
           }
         </div>
         <div className="flex-1 min-w-0">

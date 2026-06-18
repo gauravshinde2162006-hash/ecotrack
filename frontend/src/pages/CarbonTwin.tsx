@@ -13,7 +13,7 @@ import { useRef, useState, useMemo, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, Text, OrbitControls, Stars, Cloud, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { TreePine, Car, Zap, Beef, Flame, Wind } from 'lucide-react';
+import { Car, Zap, Flame, Wind } from 'lucide-react';
 
 // ── Emission factors (mirrors emissionFactors.ts) ────────────────────────────
 const FACTORS = {
