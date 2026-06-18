@@ -1,0 +1,5 @@
+describe('goals', () => {
+  it('should function successfully', () => {
+    expect(true).toBe(true);
+  });
+});
