@@ -9,18 +9,47 @@ on:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '20']
     steps:
     - uses: actions/checkout@v4
-    - name: Use Node.js 20
+    - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ matrix.node-version }}
     - name: Install Dependencies
-      run: cd backend && npm ci || npm install
+      working-directory: backend
+      run: npm install
+    - name: Run Linter
+      working-directory: backend
+      run: npx eslint . --ext .js --no-error-on-unmatched-pattern || true
     - name: Run Tests
-      run: cd backend && npm test
+      working-directory: backend
+      run: npm test
 
   test-frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '20']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install Dependencies
+      working-directory: frontend
+      run: npm install
+    - name: Type Check
+      working-directory: frontend
+      run: npx tsc --noEmit || true
+    - name: Run Tests
+      working-directory: frontend
+      run: npm test
+
+  security-audit:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -28,7 +57,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-    - name: Install Dependencies
-      run: cd frontend && npm ci || npm install
-    - name: Run Tests
-      run: cd frontend && npm test
+    - name: Backend Security Audit
+      working-directory: backend
+      run: npm audit --audit-level=critical || true
+    - name: Frontend Security Audit
+      working-directory: frontend
+      run: npm audit --audit-level=critical || true
