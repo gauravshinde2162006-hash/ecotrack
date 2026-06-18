@@ -95,8 +95,16 @@ async function seed() {
   console.log(`\n[Seed] ✅ Done! Total: ${totalCO2e.toFixed(2)} kg CO2e over 30 days`);
   console.log(`[Seed]    Average: ${(totalCO2e / 30).toFixed(2)} kg CO2e/day`);
   console.log(`[Seed]    Trees equivalent: ${(totalCO2e / 21).toFixed(1)} trees/year`);
-  await db.destroy();
-  process.exit(0);
 }
 
-seed().catch(e => { console.error(e); process.exit(1); });
+module.exports = { seed };
+
+if (require.main === module) {
+  seed().then(() => {
+    require('./db').closeDb();
+    process.exit(0);
+  }).catch(e => { 
+    console.error(e); 
+    process.exit(1); 
+  });
+}

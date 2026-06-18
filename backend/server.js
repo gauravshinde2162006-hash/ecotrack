@@ -7,7 +7,8 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const { appState } = require('./appState');
-const { initSchema } = require('./db/db');
+const { initSchema, getDb } = require('./db/db');
+const { seed } = require('./db/seed');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -67,6 +68,15 @@ async function start() {
   try {
     // Initialize DB schema then load data structures
     await initSchema();
+    
+    // Auto-seed for stateless deployments (like Render free tier)
+    const db = getDb();
+    const count = await db('daily_logs').count('id as c').first();
+    if (count.c === 0) {
+      console.log('[Startup] Database is empty. Running auto-seed for demo deployment...');
+      await seed();
+    }
+    
     await appState.initialize();
 
     app.listen(PORT, () => {
