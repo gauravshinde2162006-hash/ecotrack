@@ -6,6 +6,8 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { appState } = require('./appState');
 const { initSchema, getDb } = require('./db/db');
 const { seed } = require('./db/seed');
@@ -18,6 +20,16 @@ app.use(cors({
   origin: true, // Allow all origins for the stateless demo
   credentials: true,
 }));
+app.use(helmet());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
